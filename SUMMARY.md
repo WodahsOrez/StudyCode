@@ -1,4 +1,6 @@
 # Summary
 
-* [Typora](Typora.md)
+* [首页](README.md)
+	* [Typora](Typora.md)
+
 
