@@ -1,0 +1,46 @@
+{
+    "title": "第一本GitBook",
+    "description": "Typora的使用",
+    "author": "WodahsOrez",
+    "language": "zh-hans",
+    "gitbook": "3.2.3",
+    "root": ".",
+    "structure": {
+        "readme": "README.md"
+    },
+    "links": {
+        "sidebar": {
+            "Home": "http://###"
+        }
+    },
+    "plugins": [
+        "-lunr",
+        "-search",
+        "-highlight",
+		"prism",                 //代替高亮
+		"prism-themes",
+        "-livereload",
+        "search-plus",
+		"splitter",              //左侧栏可拖拽
+		"copy-code-button",      //代码块添加复制按钮
+		"todo",                  //增加todo
+		"anchor-navigation-ex",  //标题1~3被提取为悬浮导航
+        "anchors",                //github风格锚点
+		"expandable-chapters-small"   //折叠左侧章节目录
+    ],
+
+    "pluginsConfig": {
+       "prism": {
+            "css": [
+                "prism-themes/themes/prism-base16-ateliersulphurpool.light.css"
+            ]
+        },
+		 "anchor-navigation-ex": {
+            "isRewritePageTitle": true,
+            "isShowTocTitleIcon": true,
+            "tocLevel1Icon": "fa fa-hand-o-right",
+            "tocLevel2Icon": "fa fa-hand-o-right",
+            "tocLevel3Icon": "fa fa-hand-o-right"
+        }
+    }
+}
