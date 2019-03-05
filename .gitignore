@@ -1,2 +1,5 @@
 **/_book
-
+**/node_modules
+**/book.json
+!GitBookConfig/node_modules
+!GitBookConfig/book.json
