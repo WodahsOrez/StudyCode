@@ -59,7 +59,7 @@ filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 
 ## 应用实例
 
-[身份证图片上传预览](previewImg.html)
+<a href="previewImgDemo.html" target="_blank">身份证图片上传预览</a>
 
 ```html
 <!doctype html>
