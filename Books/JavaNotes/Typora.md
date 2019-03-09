@@ -22,6 +22,8 @@
 
 `Ctrl+Shift+Q`：引用。（`前面加上>,个数随层级增加`）
 
+
+
 ## 表格
 
 `Ctrl+T`：插入表格。（`用|分隔单元格，用---分隔表头，用:表示对齐方式`）
@@ -32,6 +34,8 @@
 |     |     |     |
 ```
 
+
+
 ## 列表
 
 `Ctrl+Shift+[`：有序列表。（`数字接英文句号，如1.`）
@@ -41,6 +45,8 @@
 `Ctrl+[`：减少列表缩进。
 
 `Ctrl+]`：增加列表缩进。
+
+
 
 ## 代码块
 
@@ -53,6 +59,8 @@
 - [流程图](https://segmentfault.com/a/1190000006247465)（flow）
 - [时序图](https://bramp.github.io/js-sequence-diagrams/)（sequence）
 - [甘特图](https://mermaidjs.github.io/)（mermaid）
+
+
 
 ## 图片、超链接、脚注
 
@@ -81,6 +89,8 @@
 [^标识]：脚注内容
 ```
 
+
+
 ## 其他
 
 `Superscript`：上标，效果演示X^2^。（`一对^`）
@@ -103,6 +113,8 @@
 `emoji`：表情图标，如 :happy:（`:emoji名称:`）
 
 `Table of  Contents`：生成内容目录。（`[toc]`）
+
+
 
 ## 软件操作快捷键
 

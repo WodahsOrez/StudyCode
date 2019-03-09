@@ -32,6 +32,8 @@ document.getElementById('file').onchange = function(){
 </html>
 ```
 
+
+
 ### URL.createObjectURL
 
 原理：创建一个 File 对象或 Blob 对象的内存URL。该URL 的生命周期和创建它的窗口中的 document 绑定。
@@ -45,6 +47,8 @@ document.getElementById('file').onchange = function(){
 
 以上两种方法也都适用于视频，区别在于需要传值到`<video>`标签的src。
 
+
+
 ### IE8兼容
 
 但是！但是！但是！以上方法IE8都不支持，所以只能用ajax把图片上传到服务器，然后返回图片在服务器上的地址，把地址塞到src里去。然而接下来还有如下的这些坑：
@@ -56,6 +60,8 @@ document.getElementById('file').onchange = function(){
 ```css
 filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 ```
+
+
 
 ## 应用实例
 
