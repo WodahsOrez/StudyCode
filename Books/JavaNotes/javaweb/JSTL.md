@@ -1,6 +1,6 @@
 # JSTL(JSP标准标签库)
 
-导包：JSTL.jar，standard.jar
+导包：JSTL.jar，standard.jar(1.2后不需要这个包了)
 
 ## core标签库(c标签)
 
@@ -285,7 +285,7 @@ tld文件一般都放到WEB-INF之下，这样保证客户端访问不到
     <!-- 自定义的标签处理类 -->
     <tag-class>my.tag.HelloTag</tag-class>
     <!-- 标签的内容，empty就表示是一个单标签 -->
-    <body-content>empty</body-content>
+    <body-content>scriptless</body-content>
       <attribute>
           <!-- 标签属性的描述信息 -->
           <description>the name of a person</description>
@@ -322,7 +322,7 @@ tld文件一般都放到WEB-INF之下，这样保证客户端访问不到
 ### JSP页面中指定tld文件位置
 
 ```jsp
-<%@ taglib prefix="my" uri="/WEB-INF/tlds/my-tag.tld" %>
+<%@ taglib prefix="my" uri="my.tag" %>
 ```
 
 然后使用标签
@@ -331,6 +331,10 @@ tld文件一般都放到WEB-INF之下，这样保证客户端访问不到
 <my:hello who="John">How are you?</my:hello>
 ```
 
+运行结果
 
+```
+hello john!How are you?
+```
 
  
