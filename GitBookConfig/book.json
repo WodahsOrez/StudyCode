@@ -26,7 +26,7 @@
 		"todo",                  
 		"anchor-navigation-ex",  
         "anchors",                
-		"expandable-chapters-small",
+		"expandable-chapters",
 		"-toggle-chapters"
     ],
 
@@ -40,6 +40,8 @@
 			"showLevel": true
 		},
 		"anchor-navigation-ex": {
+			"multipleH1": false,
+			"associatedWithSummary": false,
 			"showLevel": true
 		}
     }
