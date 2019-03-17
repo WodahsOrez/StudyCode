@@ -60,3 +60,39 @@ public class Proxy implements Subject {
 
 定义:在实现阶段不关心代理谁,在运行阶段才指定代理哪个对象.
 原理:java.lang.reflect.Proxy.newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)方法返回指定接口的代理类的实例，这些接口将调用方法调用到指定的调用处理程序。
+
+```java
+public interface Subject {
+    public void request(); 
+}
+
+public class RealSubject implements Subject {
+
+    @Override
+    public void request() {
+        // 业务处理
+    }
+}
+
+public class ProxyHandler implements InvocationHandler {
+    private Subject subject = null;
+    
+    public ProxyHandler(Subject subject) {
+        this.subject = subject;
+    }
+    
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    	// 预处理
+        Objcet obj = method.invoke(this.subject,args);
+        // 善后处理
+        return obj;
+    }
+}
+
+public class Test {
+    Subject subject = new RealSubject();
+    Subject proxy = (Subject)Proxy.newProxyInstance(subject.getClass().getClassLoader(), 			subject..getClass().getInterfaces(), new ProxyHandler(subject));
+    proxy.request();
+}
+```
+
