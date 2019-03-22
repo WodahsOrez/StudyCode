@@ -137,10 +137,10 @@
 | p          | 定义一个段落                                                 |
 | ol         | 定义一个有序列表                                             |
 | ul         | 定义一个无序列表                                             |
-| li         | 定义一个列表项                                               |
+| li         | 定义一个列表项。是ol和ul的子标签。                           |
 | dl         | 定义一个描述列表。                                           |
-| dt         | 定义一个描述列表的项目/名字。                                |
-| dd         | 用来描述一个描述列表的项目/名字。                            |
+| dt         | 定义一个描述列表的项目/名字。是dl的子标签。                  |
+| dd         | 用来描述一个描述列表的项目/名字。是dl的子标签，紧跟dt。      |
 | figure     | 规定独立的流内容（图像、图表、照片、代码等等）。             |
 | figcaption | 为figure标签定义一个标签。一般位于figure标签的第一个或最后一个元素。 |
 | pre        | 定义预格式文本。通常会保留空格和换行符。而文本也会呈现为等宽字体。 |
@@ -150,23 +150,98 @@
 
 |          | 作用                                                         |
 | -------- | ------------------------------------------------------------ |
-| fieldset | 定义围绕表单中元素的边框。属性：disabled，form，name。       |
-| legend   | 定义 fieldset 元素的标题。                                   |
-| meter    | 定义度量衡。仅用于已知最大和最小值的度量。                   |
+| form     | 定义一个 HTML 表单，用于用户输入。                           |
+| input    | 定义一个输入控件                                             |
+| datalist | 规定了 input 元素可能的选项列表。配合input的list属性指定datalist的id。 |
 | label    | 定义 input 元素的标注。点击该元素会自动触发for属性里id指向的input元素的焦点。 |
 | textarea | 定义多行的文本输入控件。                                     |
-| form     | 定义一个 HTML 表单，用于用户输入。                           |
 | select   | 定义选择列表（下拉列表）。                                   |
 | optgroup | 定义选择列表中相关选项的组合。                               |
 | option   | 定义选择列表中的选项。                                       |
-| input    | 定义一个输入控件                                             |
-| output   | 定义一个计算的结果                                           |
 | button   | 定义按钮。                                                   |
+| fieldset | 定义围绕表单中元素的边框。属性：disabled，form，name。       |
+| legend   | 定义 fieldset 元素的标题。                                   |
+| output   | 定义一个计算的结果                                           |
 | progress | 定义运行中的任务进度（进程）。                               |
-| datalist | 规定了 input 元素可能的选项列表。配合input的list属性指定datalist的id。 |
+| meter    | 定义度量衡。仅用于已知最大和最小值的度量。                   |
 | keygen   | 规定用于表单的密钥对生成器字段。                             |
 
- 
+###  form标签
+
+#### 属性：
+
+- **action**：规定提交表单时请求的URL
+- **target**：规定在何处打开action的URL，值为：_blank，\_parent，\_self，\_top，framename。
+- **method**：规定用于发送表单数据的 HTTP 方法，值为get和post。
+- **enctype**：属性规定在将表单数据发送到服务器之前如何对其进行编码。只有method=“post”时才使用。
+  - **application/x-www-form-urlencoded**：默认。在发送前对所有字符进行编码（将空格转换为 "+" 符号，特殊字符转换为 ASCII HEX 值）。
+  - **multipart/form-data**：不对字符编码。当使用有文件上传控件的表单时，该值是必需的。
+  - **text/plain**：将空格转换为 "+" 符号，但不编码特殊字符。
+- **name**：规定表单的名称。
+- **novalidate**：如果使用该属性，表单提交时不进行验证。
+- **accept-charset**：规定表单提交时使用的字符编码列表，多个字符编码使用空格分隔。
+
+### input标签
+
+#### 属性
+
+type：规定元素的类型。
+
+**accept**：规定type为file时上传文件的类型限制。值为`audio/*`，`video/*`,`image/*`等，多个值用逗号分隔。
+
+**alt**：规定图像无法显示时，代替显示的文本。只适用type为image。。
+
+**src**：规定图像的URL。只适用type为image。
+
+**height**：规定图像的高度。只配合type为image。。
+
+**width**：规定图像的宽度。只配合type为image。。
+
+**checked**：布尔属性。会在页面加载时被预先选定。只适用type为checkbox和radio。
+
+**list**：规定需要预定义选项的datalist的id。
+
+**multiple**：布尔属性。允许用户输入多个值。适用type为email和file。
+
+**pattern**：规定验证用的正则表达式。适用type为text、search、url、tel、email和password。
+
+**max**：规定最大值。适用type为number、range、date、datetime、datetime-local、month、time 和 week。
+
+**min**：规定最小值。适用type为number、range、date、datetime、datetime-local、month、time 和 week。
+
+**step**：规定合法数字间隔。以0位起点，正负都可以。适用type为number、range、date、datetime、datetime-local、month、time 和 week。
+
+**required**：布尔属性。规定提交前必须填写该元素。适用type为text、search、url、tel、email、password、date pickers、number、checkbox、radio和file。
+
+**name**：规定元素的名称。
+
+**value**：规定元素的值。
+
+**size**：规定可见宽度，以字符数计，默认20。
+
+**maxlength**：规定允许的最大字符数。
+
+**placeholder**：规定用户输入值之前显示在输入字段中的提示信息。
+
+**autocomplete **：否应该启用自动完成功能。值为on（启动）和off（关闭）。
+
+**readonly**：布尔属性。规定元素为只读，不能修改，可以选中。
+
+**autofocus**：布尔属性。当页面加载时会自动获得焦点。
+
+**disabled**：布尔属性。禁用元素，无法使用和无法点击。
+
+**formaction**：用于覆盖form的action属性。适用于`type="submit"`和`type="image"`。
+
+**formenctype **：用于覆盖form的enctype属性。适用于`type="submit"`和`type="image"`。
+
+**formmethod **：用于覆盖form的method属性。适用于`type="submit"`和`type="image"`。
+
+**formtarget  **：用于覆盖form的target属性。适用于`type="submit"`和`type="image"`。
+
+**formnovalidate  **：用于覆盖form的novalidate 属性。适用于`type="submit"`和`type="image"`。
+
+**form**：规定所属的一个或多个表单。值为form的id。
 
 ## 表格数据
 
