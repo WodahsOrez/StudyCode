@@ -71,21 +71,119 @@ mvn install  将打包的jar/war文件复制到你的本地仓库中,供其他�
 
 ## 创建项目
 
-maven module：子模块
+- maven module：子模块
 
-maven project：普通maven项目或父工程。
-
-
+- maven project：普通maven项目或父工程。
 
 
 
+## 依赖
 
+- 插件配置在`<project>`的`<dependencies>`。
+- 参考：[maven依赖查询](https://mvnrepository.com)。
+
+### dependencies和dependencyManagement的区别
+
+- dependencies：本项目会引入依赖。即使子项目不写该依赖项，仍会从父项目中继承该依赖（完全继承）。
+- dependencyManagement：本项目不会引入依赖，只是声明依赖的版本。因此子项目需要显示的声明需要用的依赖。
+  - 在子项目中**不声明依赖**，不会从父项目中继承依赖下来；
+  - 在子项目中**声明该依赖项，并且没有指定具体版本**，才会从父项目中继承该项，并且version和scope都读取自父pom;
+  - 在子项目中**声明并指定了版本号**，那么会使用子项目中指定的jar版本。
+
+
+
+### 依赖范围
+
+即`<dependency>`内的`<scope>`。
+
+| 依赖范围        | 编译时使用该依赖 | 测试时使用该依赖 | 运行时使用该依赖 |
+| --------------- | ---------------- | ---------------- | ---------------- |
+| compile（默认） | Y                | Y                | Y                |
+| test            | -                | Y                | -                |
+| provided        | Y                | Y                | -                |
+| runtime         | -                | Y                | Y                |
+| system          | Y                | Y                | -                |
+
+
+
+### 依赖传递
+
+A依赖B且scope为X，B依赖C且scope为Y。A与B的依赖称为**第一直接依赖**，B与C的依赖称为**第二直接依赖**。A与C的依赖称为**传递性依赖**，其scope如下表所示。`-`表示依赖不传递，即A不依赖C。
+
+| 下边是X/右边是Y | compile  | test | provided | runtime  |
+| --------------- | -------- | ---- | -------- | -------- |
+| compile         | compile  | -    | -        | runtime  |
+| test            | test     | -    | -        | test     |
+| provided        | provided | -    | provided | provided |
+| runtime         | runtime  | -    | -        | runtime  |
+
+#### 总结
+
+- Y是compile时，A依赖C且其scope与X相同。
+- Y是test时，A不依赖C。
+- Y是provided时，只有X是provided时，A依赖C，且scope依然为provided。
+- Y是runtime时，当X为compile和runtime时，A依赖C且其scope为runtime，否则与X相同。
+
+
+
+### 依赖冲突
+
+```
+A→B→C→D→E→X（version 0.1）
+A→F→X（version 0.2）
+```
+
+如上情况所示A对于X的依赖不只有一种，处理这种冲突的方法如下：
+
+- 就近原则：即依赖的层级少的优先于依赖层级多的。（直接依赖优先于传递依赖就是这一规则的特殊体现）。
+
+- 声明优先原则：即在依赖层级相同的情况下，声明靠前的优先于靠后的。
+
+- 版本锁定：配置dependencyManagement。
+
+- 排除依赖：`<exclusions><exclusion><exclusion></exclusion>`
+
+
+```xml
+<dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-core</artifactId>
+	<version>${spring.version}</version>
+	<!-- 排除spring-core里的commons-logging依赖 -->
+	<exclusions>
+		<exclusion>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+```
+
+
+
+
+### 常用依赖配置
+
+#### JSTL
+
+```xml
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+```
 
 ## 插件
 
-插件配置在`<build>`的`<plugins>`或者`<pluginManagement>的<plugins>`下
+- 插件配置在`<build>`的`<plugins>`。
+- pluginManagement类似于dependencyManagement，都是用于控制版本的。
 
-编译环境
+
+
+### 常用插件配置
+
+#### 编译环境
 
 ```xml
 <build>
@@ -104,57 +202,73 @@ maven project：普通maven项目或父工程。
 </build>
 ```
 
-tomcat配置
+#### tomcat配置
 
-```
+```xml
 <plugin>
-	<!-- 配置插件 -->
+	<!-- 配置tomcat插件 -->
 	<groupId>org.apache.tomcat.maven</groupId>
 	<artifactId>tomcat7-maven-plugin</artifactId>
+	<version>2.2</version>
 	<configuration>
 		<port>8080</port>
-		<path>/</path>
+		<!-- 项目名，即域名后的项目路径名 -->
+        <path>/</path>
+        <uriEncoding>UTF-8</uriEncoding>
+        <!-- 远程部署，需要填写部署服务器URL和用户，密码 -->
+        <url>http://xxx.xxx.xxx.xxx:8080/manager/text</url>
+        <username>username</username>
+        <password>password</password>
 	</configuration>
 </plugin>
 ```
 
+Goals命令：tomcat7:run，tomcat7:deploy，tomcat7:redeploy
 
 
-## 依赖
 
-插件配置在`<project>`的`<dependencies>`或者`<dependencyManagement>`下
+##### 远程部署
 
-参考：[maven依赖查询](https://mvnrepository.com)
-
-#### dependencies和dependencyManagement的区别
-
-- dependencies：即使子项目不写该依赖项，仍会从父项目中继承该依赖（完全继承）。
-- dependencyManagement：里只是声明依赖，并不实现引入，因此子项目需要显示的声明需要用的依赖。
-  - 在子项目中**不声明依赖**，不会从父项目中继承依赖下来；
-  - 在子项目中**声明该依赖项，并且没有指定具体版本**，才会从父项目中继承该项，并且version和scope都读取自父pom;
-  - 在子项目中**声明并指定了版本号**，那么会使用子项目中指定的jar版本。
-
-### 依赖范围
-
-即`<dependency>`内的`<scope>`。
-
-| 依赖范围        | 编译时使用该依赖 | 测试时使用该依赖 | 运行时使用该依赖 |
-| --------------- | ---------------- | ---------------- | ---------------- |
-| compile（默认） | Y                | Y                | Y                |
-| test            | -                | Y                | -                |
-| provided        | Y                | Y                | -                |
-| runtime         | -                | Y                | Y                |
-| system          | Y                | Y                | -                |
-
-当一个项目继承了多个传递依赖的范围变化
-
-**JSTL**
+配置到远程tomcat服务器需修改该服务器的conf下的tomcat-users.xml，进行角色权限配置。
 
 ```xml
-<dependency>
-    <groupId>javax.servlet</groupId>
-    <artifactId>jstl</artifactId>
-    <version>1.2</version>
-</dependency>
+<tomcat-users>
+    <role rolename="manager-script"/>
+    <role rolename="manager-jmx"/>
+    <role rolename="manager-status"/>
+    <role rolename="manager"/>
+    <role rolename="manager-gui"/>
+    <user username="username" password="password" roles="manager,manager-gui,manager-script,manager-jmx,manager-status"/>  
+</tomcat-users>
 ```
 
+ **配置说明：**
+
+- manager-gui：允许访问html接口(即URL路径为/manager/html/)
+- manager-script：允许访问纯文本接口(即URL路径为/manager/text/)
+- manager-jmx：允许访问JMX代理接口(即URL路径为/manager/jmxproxy/)
+- manager-status：允许访问Tomcat只读状态页面(即URL路径为/manager/status/)
+
+从Tomcat Manager内部配置文件中可以得知，manager-gui、manager-script、manager-jmx均具备manager-status的权限，也就是说，manager-gui、manager-script、manager-jmx三种角色权限无需再额外添加manager-status权限，即可直接访问路径"/manager/status/*"。
+
+## 其他配置
+
+### properties标签
+
+```xml
+<properties>
+    <struts.version>2.3.15</struts.version>
+    <mysql.version>5.1.29</mysql.version>
+    <hibernate.version>4.3.1.Final</hibernate.version>
+</properties>
+```
+
+pom.xml中配置properties标签，在pom.xml中可以通过${struts.version}来取得2.3.15这个值。
+
+## 常见错误整理
+
+**No compiler is provided in this environment. Perhaps you are running on a JRE rather than a JDK?**
+
+原因：maven编译需要JDK，而eclipse配置的是JRE。
+
+解决：【Window】-->【Prefrences】-->【Java】-->【Installed JREs】--->【add】--->【Standard VM】--->【Directory...】--->JDK路径--->勾选配置的JDK然后确认。
