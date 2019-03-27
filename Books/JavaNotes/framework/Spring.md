@@ -74,9 +74,79 @@ setter方法注入（常用）
 </bean>
 ```
 
+## AOP理论
+
+AOP(Aspect-Oriented Programming)
+
+面向切面编程，是一种通过预编译方式和运行期动态代理实现在不修改源代码的情况下给程序动态添加功能的技术
+
+Spring采用动态代理织入,AspectJ采用编译期织入和类装载织入
 
 
 
+使用“横切”技术，AOP把软件系统分为两部分
+
+核心关注点(核心业务)
+
+横切关注点(交叉业务,其他的附加的)
+
+实现方法：动态代理设计模式
+
+
+
+AOP相关术语
+
+增强（Advice）(给目标对象增加功能,即织入的代码,同时它拥有执行点的方位)
+
+切入点（Pointcut）(匹配连接点的规则,指出哪些方法需要增强)
+
+连接点（Joinpoint）(实际匹配到切入点的方法加方位信息的具体程序执行点)
+
+切面（Aspect）(增强和切入点组合起来就是切面,既包括对逻辑的定义,又包括连接点的定义)
+
+代理（Proxy）(目标类被aop增强后产生的结果类,称为代理类)
+
+目标对象（Target）(得到增强的目标类)
+
+织入（Weaving）(增强的这个动作过程)
+
+引介（Introduction）(类级别增强,为类动态添加接口实现逻辑)
+
+ 
+
+ 
+
+实现AOP的方式
+
+1,基于代理的经典AOP(经典代理)
+
+创建代理对象,实现InvocationHandler,getInstance,invoke()
+
+2,纯POJO切面
+
+`<aop:config>`
+
+3,@AspectJ注解驱动的切面
+
+4,注入式AspectJ切面(方法级别以外的增强使用)
+
+ 
+
+两种动态代理
+
+一.JDK动态代理
+
+必须实现接口,才能使用
+
+njava.lang.reflect.InvocationHandler
+
+njava.lang.reflect.Proxy
+
+二.CGLib动态代理
+
+通过利用规则直接生成对应的代理.class,所以可以不需要实现接口
+
+添加CGLIB库，并在spring配置中加入<aop:aspectj-autoproxy proxy-target-class="true"/>
 
 
 
