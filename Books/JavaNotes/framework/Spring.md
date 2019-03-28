@@ -76,65 +76,68 @@ setter方法注入（常用）
 
 ## AOP理论
 
-AOP(Aspect-Oriented Programming)
+AOP(Aspect-Oriented Programming)面向切面编程，是一种通过预编译方式和运行期动态代理实现在不修改源代码的情况下给程序动态添加功能的技术。
 
-面向切面编程，是一种通过预编译方式和运行期动态代理实现在不修改源代码的情况下给程序动态添加功能的技术
-
-Spring采用动态代理织入,AspectJ采用编译期织入和类装载织入
+Spring采用动态代理织入，AspectJ采用编译期织入和类装载织入
 
 
 
-使用“横切”技术，AOP把软件系统分为两部分
+### AOP相关术语
 
-核心关注点(核心业务)
+- 增强（Advice）(给目标对象增加功能，即织入的代码，同时它拥有执行点的方位)
 
-横切关注点(交叉业务,其他的附加的)
+- 切入点（Pointcut）(匹配连接点的规则，指出哪些方法需要增强)
 
-实现方法：动态代理设计模式
+- 连接点（Joinpoint）(实际匹配到切入点的方法加方位信息的具体程序执行点)
+
+- 切面（Aspect）(增强和切入点组合起来就是切面，既包括对逻辑的定义，又包括连接点的定义)
+
+- 代理（Proxy）(目标类被aop增强后产生的结果类，称为代理类)
+
+- 目标对象（Target）(得到增强的目标类)
+
+- 织入（Weaving）(增强的这个动作过程)
+
+- 引介（Introduction）(类级别增强，为类动态添加接口实现逻辑)
+
+
+ 连接点是所有能够被增强的方法，而切入点是规则指定要增强的方法。
 
 
 
-AOP相关术语
+#### 增强处理类型:
 
-增强（Advice）(给目标对象增加功能,即织入的代码,同时它拥有执行点的方位)
+**Before**：前置增强处理，在目标方法前织入增强处理
 
-切入点（Pointcut）(匹配连接点的规则,指出哪些方法需要增强)
+**AfterReturning**：后置增强处理，在目标方法正常执行（不出现异常）后织入增强处理
 
-连接点（Joinpoint）(实际匹配到切入点的方法加方位信息的具体程序执行点)
+**AfterThrowing**：异常增强处理，在目标方法抛出异常后织入增强处理
 
-切面（Aspect）(增强和切入点组合起来就是切面,既包括对逻辑的定义,又包括连接点的定义)
+**After**：最终增强处理，不论方法是否抛出异常，都会在目标方法最后织入增强处理
 
-代理（Proxy）(目标类被aop增强后产生的结果类,称为代理类)
+**Around**：环绕增强处理，在目标方法的前后都可以织入增强处理
 
-目标对象（Target）(得到增强的目标类)
+[不同增强处理类型执行顺序](http://www.xuebuyuan.com/2116977.html)
 
-织入（Weaving）(增强的这个动作过程)
+```
+不同通知的执行顺序：
+    @Around环绕通知，方法前...
+    @Before前置通知
+    执行对象方法...
+    @Around环绕通知，方法后...
+    @AfterReturning后置通知
+    @After最终通知 执行...
+    @AfterThrowing异常通知，程序出现异常了吗？
+    退出方法...
+相同通知的执行顺序是：
+	从上向下
+```
 
-引介（Introduction）(类级别增强,为类动态添加接口实现逻辑)
 
- 
 
- 
+### 两种动态代理
 
-实现AOP的方式
-
-1,基于代理的经典AOP(经典代理)
-
-创建代理对象,实现InvocationHandler,getInstance,invoke()
-
-2,纯POJO切面
-
-`<aop:config>`
-
-3,@AspectJ注解驱动的切面
-
-4,注入式AspectJ切面(方法级别以外的增强使用)
-
- 
-
-两种动态代理
-
-一.JDK动态代理
+#### JDK动态代理
 
 必须实现接口,才能使用
 
@@ -142,15 +145,72 @@ njava.lang.reflect.InvocationHandler
 
 njava.lang.reflect.Proxy
 
-二.CGLib动态代理
+#### CGLib动态代理
 
-通过利用规则直接生成对应的代理.class,所以可以不需要实现接口
+通过利用规则直接生成对应的子类代理.class，所以可以不需要实现接口，不能对final类代理。
 
-添加CGLIB库，并在spring配置中加入<aop:aspectj-autoproxy proxy-target-class="true"/>
-
-
+添加CGLIB库，并在spring配置中加入`<aop:aspectj-autoproxy proxy-target-class="true"/>`
 
 
+
+### 切入点的表达式
+
+```java
+execution(<修饰符模式>? <返回类型模式> <方法名模式>(<参数模式>) <异常模式>?)  //?为可选项
+//参数模式:如果入参类型为java.lang包下的类,可以直接使用类名,否则必须使用全限定名
+//*代表类型任意，..代表包及其子包，.*(..)表示方法名任意且参数任意
+execution(public * *(..) )  任意public方法
+execution(* *To(..))  任意以To为后缀的方法
+execution(* com.smart.Waiter.*(..))  所有com.smart.Waiter接口定义的方法
+execution(* com.smart.Waiter+.*(..))  所有com.smart.Waiter接口和其实现类的方法
+execution(* com.smart.*.*(..))  所有com.smart包下的类的所有方法
+execution(* com.smart..*.*(..))  所有com.smart包下及其子包下的类的所有方法
+execution(* com..*.*Dao.find*(..))  所有com包下及其子包下以Dao为后缀的类的以find为前缀的方法
+execution(* joke(String,int))  匹配名为joke,入参类型为(String,int)的方法
+execution(* joke(String,*))  匹配名为joke,第一个入参为String,后一个任意的方法,但有且仅有两个入参
+execution(* joke(String,..))  匹配名为joke,第一个入参为String,后面可以有任意个(包括零)任意类型的入参
+execution(* joke(Object+))  匹配名为joke,入参类型为Object或其子类
+```
+
+## Spring事务
+
+### 配置事务管理器
+
+```xml
+<bean id="transactionManager" 
+      class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource" />
+</bean>
+```
+
+#### 支持的事务管理器：
+
+- JDBC或MyBatis：org.springframework.jdbc.datasource.DataSourceTransactionManager
+- Hibernate：org.springframework.orm.hibernate5.HibernateTransactionManager
+- Jpa：org.springframework.orm.jpa.JpaTransactionManager
+- Jdo：org.springframework.orm.jdo.JdoTransactionManager
+- JTA：org.springframework.transaction.jta.JtaTransactionManager
+
+### 声明式事务xml配置
+
+```xml
+<!--事务增强 -->
+<tx:advice id="txAdvice" transaction-manager="txManager">
+	<tx:attributes>
+		<!--事务属性定义 -->
+		<tx:method name="get*" read-only="false" />
+		<tx:method name="add*" rollback-for="PessimisticLockingFailureException" />
+		<tx:method name="update*" />
+	</tx:attributes>
+</tx:advice>
+<!--使用强大的切点表达式语言轻松定义目标方法 -->
+<aop:config>
+	<!--通过aop定义事务增强切面 -->
+	<aop:pointcut id="serviceMethod" expression="execution(* com.yyq.service.*Forum.*(..))" />
+	<!--引用事务增强 -->
+	<aop:advisor pointcut-ref="serviceMethod" advice-ref="txAdvice" />
+</aop:config>
+```
 
 
 

@@ -153,3 +153,81 @@ public void login(User user, HttpServletResponse response){
 #### @ModelAttribute(value) 
 
 作用于方法或形参，把返回值或参数对象存到request中，key为指定的value，本质是使用Model的addAttribute方法
+
+## Aop注解
+
+### 增强注解
+
+- @Aspect 标注增强类
+
+- @Pointcut("execution(匹配表达式)")
+
+  - public void pointcutId(){}  //固定形式,方法名为pointcut的id名
+
+  - 切点引用修饰符:
+
+    - public 可视域为public
+
+    - protected 可视域为protected，该切点可以在当前包中的切面类，自切面类中使用
+
+    - private   可视域为private，该切点只能在本切面类中使用
+
+  - 切点的引用：在切点表达式内用"切面类名.切点名称"
+
+- @Before("pointcutId或匹配表达式")
+
+- @After("pointcutId或匹配表达式")
+
+- @Around("pointcutId或匹配表达式")
+
+- @AfterReturning(pointcut="pointcutId或匹配表达式",returning="对应增强方法参数名")
+
+- @AfterThrowing(pointcut="pointcutId或匹配表达式",throwing="对应增强方法参数名")
+
+#### 增强织入顺序
+
+1. 切面类中，按定义的顺序进行织入
+2. 切面类，实现org.springframework.core.Orderd接口的，有接口方法的顺序号决定，顺序越小：
+   - 前置增强：越先织入 ，
+   - 后置增强：越后织入 ，
+   - 最终增强：越后织入 ，
+   - 环绕增强：调用原方法之前的部分先织入，调用原方法之后的部分后织入 
+
+3. 给aspect添加**@Order**注解，该注解全称为：org.springframework.core.annotation.Order
+
+### 事务注解
+
+```java
+@Transactional(propagation=Propagation.REQUIRES_NEW,
+		isolation=Isolation.READ_COMMITTED,
+		rollbackFor={UserAccountException.class},
+		readOnly=false,timeout=3)
+```
+
+#### @Transactional
+
+- 当@Transactional加在方法上，表示对该方法应用事务。
+- 当加在类上，表示对该类里面所有的方法都应用相同配置的事务。
+
+#### 属性
+
+- **value**:事务管理器
+
+- **propagation** 传播行为，默认不存在事务则新建，否则添加到已有事务
+  - **REQUIRED**（默认值）：在有事务状态下执行；如当前没有事务，则创建新的事务；
+
+  - **SUPPORTS**：如当前有事务，则在事务状态下执行；如果当前没有事务，在无事务状态下执行；
+
+  - **MANDATORY**：必须在有事务状态下执行，如果当前没有事务，则抛出异常IllegalTransactionStateException；
+
+  - **REQUIRES_NEW**：创建新的事务并执行；如果当前已有事务，则将当前事务挂起；
+
+  - **NOT_SUPPORTED**：在无事务状态下执行；如果当前已有事务，则将当前事务挂起；
+
+  - **NEVER**：在无事务状态下执行；如果当前已有事务，则抛出异常IllegalTransactionStateException。
+
+- **isolation** 隔离级别
+
+- **readOnly** 是否读写
+
+- **timeout** 超时时间设置

@@ -62,6 +62,84 @@
 
 
 
+### 导入外部数据
+
+#### 导入Properties文件
+
+```xml
+<!--1.使用传统的PropertyPlaceholderConfigurer引用属性文件  -->
+<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" p:fileEncoding="utf-8">
+    <property name="locations">
+        <list>
+              <value>classpath:com/smart/placeholder/jdbc.properties</value>
+        </list>
+    </property>
+</bean>
+
+<!--2.使用context命名空间的配置引用属性文件  -->
+<context:property-placeholder location="classpath:com/smart/placeholder/jdbc.properties" file-encoding="utf8"/>
+```
+
+properties文件内可以引用自身文件内的属性值,如:
+
+```properties
+dbName=sampledb
+url=jdbc:mysql://localhost:3306/${dbName} 
+```
+
+属性引用的语法
+
+- xml配置:${属性名}，#{beanName.beanProp} 引用配置的bean的属性值或方法的返回值
+- 基于java类：@Value(${属性名}，@Value(#{beanName.beanProp})
+
+ 
+
+#### context:property-placeholder详解 
+
+属性:
+
+1. location="属性文件，多个之间逗号分隔,或者可以使用通配符"  
+
+2. file-encoding="文件编码"  
+
+3. ignore-resource-not-found="是否忽略找不到的属性文件，如果不忽略，找不到将抛出异常"  
+
+4. ignore-unresolvable="是否忽略解析不到的属性，如果不忽略，找不到将抛出异常."
+
+5. properties-ref="Spring内部Properties对象的Bean名" ,例如XML中配置的java.util.Properties对象
+
+6. local-override="是否本地覆盖模式，即如果true，那么properties-ref的属性将覆盖location加载的属性，否则相反"  
+
+7. system-properties-mode="系统属性模式"
+
+   - ENVIRONMENT(默认):通过当前环境和本地properties解析占位符
+   - NEVER:只通过本地properties,不通过系统环境参数
+   - OVERRIDE:先系统环境参数后本地properties
+   - FALLBACK:先本地properties后系统环境参数
+
+8. order="顺序"  多个该标签配置之间的检索顺序
+
+  
+
+#### 配置多个context:property-placeholder的方法
+
+由于一般配置多个只会有一个生效，除了在一个里配置多个**properties**文件之外，就需要做如下配置:
+
+```xml
+<context:property-placeholder location=*"classpath:config.properties"* ignore-unresolvable=*"true"* order=*"1"* />
+<context:property-placeholder location=*"classpath:config2.properties"* ignore-unresolvable=*"false"* order=*"2"* /> 
+```
+
+1. order属性决定多个配置时的加载先后顺序,数字越小越先加载
+
+2. 当spring加载的`<context:property-placeholder>`的ignore-unresolvable属性为false，则停止扫描剩余的`<context:property-placeholder>`，反之,则继续扫描.
+
+3. 由于ignore-unresolvable="true"时会忽略解析不到的属性，无法报错，所以我们需要在**最后加载**的`<context:property-placeholder>`的ignore-unresolvable属性设为false。
+
+4. 多个配置文件中如果有属性名相同的情况，则后加载的会覆盖先加载的。
+
+5. PropertyPlaceholderConfigurer和<context:property-placeholder>是等效的，以上的规则对其也适用，有时错误产生的原因就在PropertyPlaceholderConfigurer的配置上。
+
 ## context命名空间
 
 ### 导入约束
@@ -121,5 +199,68 @@
 
 ```xml
 <bean id="userDaoImpl" class="cn.bdqn.biz.dao.impl.UserDaoImpl" p:dao="123" p:dao-ref="userDao"/>
+```
+
+## Aop命名空间
+
+### 导入约束
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop“ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+```
+
+### 配置切面
+
+```xml
+<aop:config>
+    <!-- 配置切入点，expression写匹配方法的规则 -->
+	<aop:pointcut id="servicePointcut" expression="execution(public * com.pb.service.*.*(..))" />
+	<!-- ref指定增强方法所在类的bean的id -->
+    <aop:aspect ref="serviceLogging">
+		<!-- method为增强方法的名称，pointcut—ref指要织入增强的切点的id -->
+		<aop:before method="beforeService" pointcut-ref="servicePointcut" />
+		<!-- returning为增强方法的形参名，会把被增强方法的返回值传给该形参 -->
+        <aop:after-returning method="afterReturning" pointcut-ref="servicePointcut" returning="returnVal" />
+		<!-- throwing为增强方法的形参名，会把被增强方法的异常传给该形参 -->
+        <aop:after-throwing method="afterThrowing" pointcut-ref="servicePointcut" throwing="ex" />
+		<aop:after method="after" pointcut-ref="servicePointcut" />
+		<aop:around method="around" pointcut-ref="servicePointcut" />
+	</aop:aspect>
+</aop:config>
+```
+
+### 其他配置
+
+```xml
+<!-- 开启aop自动代理，false默认使用JDK动态代理，true默认使用CGLib动态代理 -->
+<aop:aspectj-autoproxy proxy-target-class="false"/>
+```
+
+## tx命名空间
+
+### 导入约束
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+```
+
+### 增强事务
+
+```xml
+<!--事务增强 -->
+<tx:advice id="txAdvice" transaction-manager="txManager">
+	<tx:attributes>
+		<!--事务属性定义 -->
+		<tx:method name="get*" read-only="false" />
+		<tx:method name="add*" rollback-for="PessimisticLockingFailureException" />
+		<tx:method name="update*" />
+	</tx:attributes>
+</tx:advice>
+```
+
+启用事务注解
+
+```xml
+<tx:annotation-driven transaction-manager="txManager"/>
 ```
 
