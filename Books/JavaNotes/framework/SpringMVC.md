@@ -1,11 +1,5 @@
 # SpringMVC
 
-## 配置使用
-
-
-
-
-
 ## 基本概念
 
 ### 执行过程
@@ -27,3 +21,165 @@
 10. 前端控制器进行视图渲染
     - 视图渲染将模型数据(在ModelAndView对象中)填充到request域
 11. 前端控制器向用户响应结果 
+
+
+## 配置使用
+
+### 配置DispatcherServlet（前端控制器），web.xml内添加
+
+```xml
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:springmvc.xml</param-value>
+    </init-param>
+     <load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <!-- 配置映射，支持RESTful，需额外配置静态文件 -->
+    <url-pattern>/</url-pattern> 
+</servlet-mapping>
+```
+
+### 导入MVC命名空间约束
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+```
+
+### 非注解配置处理器适配器和映射器。（一般不用）
+
+```xml
+<!-- 配置处理器适配器 -->
+<!-- 简单的控制器处理器适配器，它支持所有实现了Controller接口的Handler控制器 -->
+<bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />
+
+<!--  http 请求处理器适配器，它要求编写的Handler需要实现HttpRequestHandler接口 -->
+<bean class="org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter" />
+
+<!-- 配置处理器映射器，多个映射器可以并存 -->
+<!-- BeanNameUrlHandlerMapping,根据对象的名字来进行处理器映射，此时该对象要继承AbstractController 实现handlerRequestInternal方法；对请求的处理主要在该方法中完成 -->
+<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping" />
+<!-- 对应Handler的配置，对象配置时的name属性必须为 "/xxx.action"的形式，即为访问的URL名-->
+<bean name="/index.action" class="com.lh.controller.testController"></bean>
+
+<!-- SimpleUrlHandlerMapping，简单url映射,可以统一配 -->
+<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="mappings">
+        <props>
+            <prop key="/items1.action">controller的bean id</prop>
+            <prop key="/items2.action">controller的bean id</prop>
+        </props>
+    </property>
+</bean>
+
+<!-- ControllerClassNameHandlerMapping，对应Handler的类名必须为xxxController，访问地址为输入/xxxController或 /xxxcontroller或/xxx -->
+<bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"></bean>
+```
+
+### 使用注解配置（常用方式）
+
+```xml
+<!-- 默认加载注解适配器和映射器 -->
+<mvc:annotation-driven /> 
+<!-- 指定需要扫描的包,省去配置用注解的bean类 -->
+<context:component-scan base-package="spring.controller"></context:component-scan>
+```
+
+### 配置视图解析器
+
+```xml
+<!-- 配置视图解析器 -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<!-- JstlView表示JSP模板页面需要使用JSTL标签库，所以classpath中必须包含jstl -->
+	<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+	<!-- 配置前后缀，在写jsp路径时可以省略前后缀部分 -->
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+	<property name="suffix" value=".jsp"/>
+</bean>
+```
+
+### 文件上传
+
+```xml
+<!-- 文件上传配置,上传拦截，如最大上传值及最小上传值 -->
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >   
+	<property name="maxUploadSize" value="104857600"></property>   
+	<property name="maxInMemorySize" value="4096"></property>   
+	<property name="defaultEncoding" value="utf-8"></property> 
+</bean>  
+```
+
+### 静态资源
+
+```xml
+<!-- 静态文件地址配置,所有mapping都到location里进行查找 -->
+<mvc:resources location="upload/img/" mapping="/upload/img/**" />
+<mvc:resources location="static_resources/css/" mapping="/styles/**" />   
+```
+
+## 注解
+
+**@Controller**：标识Handler类，修饰类
+
+**@RestController** ：Spring4之后新加入的注解，原来返回json需要@ResponseBody和@Controller配合。即@RestController是@ResponseBody和@Controller的组合注解。
+
+**@ResponseBody** ：注解的作用是将controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到response对象的body区，通常用来返回JSON数据或者是XML数据，需要注意的呢，在使用此注解之后不会再走视图处理器，而是直接将数据写入到输入流中，他的效果等同于通过response对象输出指定格式的数据。
+
+```java
+@RequestMapping("/login")
+@ResponseBody
+public User login(User user){
+	return user;
+}
+// 效果等同于如下代码：
+@RequestMapping("/login")
+public void login(User user, HttpServletResponse response){
+	response.getWriter.write(JSONObject.fromObject(user).toString());
+}
+```
+
+**@RequestMapping**(value="/item")或@RequestMapping("/item）作用于类和方法，标识映射URL，带/为绝对路径(推荐)
+
+- value的值是数组，可以将多个url映射到同一个方法或类。
+
+- method的值为RequestMethod.GET/POST，多值用{,}
+
+
+**@PathVariable()**：为支持REST，用于匹配RequestMapping中的{xxx}占位符参数
+
+**@RequestParam**(value,required) 把request的参数绑定到方法的形参上
+
+- value是匹配传递的参数名，等效于Request.getParamrter()
+
+- required默认为true,表示必须包含对应的参数
+
+
+**@ModelAttribute(value)** 
+
+作用于方法
+
+- 该方法会在此controller每个方法执行前被执行。
+- 如果方法有返回值，则使用Model的addAttribute添加该返回值为属性。
+- 属性名为value值，如果没有value值则为首字母小写的类型名。
+
+如下所示和**@RequestMapping**一起注释一个方法时，方法返回值不在表示视图名称，视图名称由RequestToViewNameTranslator根据请求"/helloWorld.do"转换为逻辑视图helloWorld。并且执行了model.addAttribute("attributeName","hi")把返回值存进了model里。
+
+```java
+1 @Controller 
+2 public class HelloWorldController { 
+3     @RequestMapping(value = "/helloWorld.do") 
+4     @ModelAttribute("attributeName") 
+5     public String helloWorld() { 
+6          return "hi"; 
+7     } 
+8 }
+```
+
+作用于形参，把返回值或参数对象存到request中，key为指定的value，本质是使用Model的addAttribute方法。
+
+**@SessionAttributes**("userSession")修饰类，能把ModelAndView的里的attribute和方法参数里用@ModelAttribute修饰的参数，存储到session里去，通过匹配参数名或者类型
