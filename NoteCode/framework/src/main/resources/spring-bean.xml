@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context-3.0.xsd
+         http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+         http://www.springframework.org/schema/p
+         http://www.springframework.org/schema/p/spring-p.xsd">
+	
+	<!-- 开启注解扫描，扫描指定package内的类，属性，方法上的注解 -->
+	<context:component-scan base-package="me.wodahsorez">
+	</context:component-scan>
+	<!-- 启用已经被注册的bean的属性上的注解，component-scan也包含该功能 -->
+	<context:annotation-config></context:annotation-config>
+</beans>

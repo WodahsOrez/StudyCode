@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<taglib xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd" version="2.1">
+  <!-- 标签库的描述 -->
+  <description>This is my tag library</description>
+  <!-- 标签库的显示名称 -->
+  <display-name>MY Tag</display-name>
+  <!-- 标签库的版本信息 -->
+  <tlib-version>1.0</tlib-version>
+  <!-- 建议使用的标签库的前缀 -->
+  <short-name>my</short-name>
+  <!-- 标签库的uri,导入标签库时用到-->
+  <uri>my.tag</uri>
+
+  <tag>
+    <!-- 标签的描述 -->
+    <description>print "hello my tag"</description>
+    <!-- 标签的名称 -->
+    <name>hello</name>
+    <!-- 自定义的标签处理类 -->
+    <tag-class>my.tag.HelloTag</tag-class>
+    <!-- 标签的内容，empty就表示是一个单标签 -->
+    <body-content>scriptless</body-content>
+      <attribute>
+          <!-- 标签属性的描述信息 -->
+          <description>the name of a person</description>
+          <!-- 每个标签的属性的名称必须唯一 -->
+          <name>who</name>
+          <!-- 指明这个属性是必须(true)还是可选(false) -->
+          <required>false</required>
+          <!-- 该属性是否可以接受运行时表达式的值(EL表达式) -->
+          <rtexprvalue>true</rtexprvalue>
+          <!-- 标签的属性的类型 -->
+          <type>java.lang.String</type>
+          <!-- 如果为true,属性值将被视为一个JspFragment -->
+          <fragment>false</fragment>
+      </attribute>
+  </tag>
+
+</taglib>
