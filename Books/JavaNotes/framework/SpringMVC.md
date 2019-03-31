@@ -208,9 +208,9 @@ public void login(User user, HttpServletResponse response){
 ### 简单类型绑定
 
 - 基本数据类型的值，请求的参数名和形参名一致可传值
--  pojo绑定(和简单类型绑定同时生效,即同名两个都获得值)
+- pojo绑定(和简单类型绑定同时生效,即同名两个都获得值)
   - 形参pojo的属性名和请求参数名相同即可传值
-  - 请求参数名为item.name则匹配，形参pojo的item属性的name属性
+  - 请求参数名为item.name则匹配，某个pojo形参的item属性的name属性
 - 数组绑定：页面多个参数name相同，形参同名数组类型即可
 - list绑定：页面参数名写成：items[0].name的形式
 - map绑定：页面参数名写成：items['name']的形式
@@ -252,4 +252,3 @@ public class CustomDateConverter implements Converter<String, Date> {
 ```
 
 原理分析：页面的参数名用来匹配形参的参数名，然后会根据形参的具体类型去自动匹配对应的转换器（如果有的话），把转换后的结果注入到变量中。
-
