@@ -161,7 +161,7 @@ public void login(User user, HttpServletResponse response){
 
 **@ModelAttribute(value)** 
 
-作用于方法
+**作用于方法：**
 
 - 该方法会在此controller每个方法执行前被执行。
 - 如果方法有返回值，则使用Model的addAttribute添加该返回值为属性。
@@ -180,6 +180,76 @@ public void login(User user, HttpServletResponse response){
 8 }
 ```
 
-作用于形参，把返回值或参数对象存到request中，key为指定的value，本质是使用Model的addAttribute方法。
+**作用于形参：**
 
-**@SessionAttributes**("userSession")修饰类，能把ModelAndView的里的attribute和方法参数里用@ModelAttribute修饰的参数，存储到session里去，通过匹配参数名或者类型
+会将客户端传递过来的参数按名称注入到指定对象中，并且会将这个对象自动加入ModelMap中，便于View层使用。
+
+**@SessionAttributes**("userSession")只能修饰类，可以将Model中的属性同步到session当中，通过匹配参数名或者类型
+
+- String[] value：要保存到session中的参数名称
+- Class[] typtes：要保存的参数的类型，和value是并集关系，即互相独立起作用。
+
+**@RequestParam()**自定义绑定，把请求里的参数绑定到形参里
+
+- value：传入key/value的key，即参数名称
+- required：true必须传此参数，否则报400 Required Integer parameter 'XXXX' is not present
+- defaultValue：默认值，没同名参数时的默认值
+
+## 参数绑定
+
+### 默认支持参数类型(直接写在方法形参就可使用)
+
+- HttpServletRequest获取请求信息
+- HttpServletResponse处理响应信息
+- HttpSession得到session中存放的对象
+- Model/ModelMap向页面传递数据（底层就是写入request域）
+- RedirectAttributes用于重定向存储数据
+
+### 简单类型绑定
+
+- 基本数据类型的值，请求的参数名和形参名一致可传值
+-  pojo绑定(和简单类型绑定同时生效,即同名两个都获得值)
+  - 形参pojo的属性名和请求参数名相同即可传值
+  - 请求参数名为item.name则匹配，形参pojo的item属性的name属性
+- 数组绑定：页面多个参数name相同，形参同名数组类型即可
+- list绑定：页面参数名写成：items[0].name的形式
+- map绑定：页面参数名写成：items['name']的形式
+
+### 自定义Converter
+
+配置方式
+
+```xml
+<!-- conversion-service属性填写自定义的转换器服务的bean的id -->
+<mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>
+<!-- conversionService转换器服务，多个转换器配置在list里 -->
+<bean id="conversionService"	class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+	<!-- 转换器 -->
+	<property name="converters">
+		<list>
+			<bean class="cn.itcast.ssm.controller.converter.CustomDateConverter"/>
+		</list>
+	</property>
+</bean>
+```
+
+编写自定义Converter类
+
+```java
+// 接口的泛型就是需要转换的类型，一般是String转成目标类型
+public class CustomDateConverter implements Converter<String, Date> {
+    @Override
+    public Date convert(String source) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            return simpleDateFormat.parse(source);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+```
+
+原理分析：页面的参数名用来匹配形参的参数名，然后会根据形参的具体类型去自动匹配对应的转换器（如果有的话），把转换后的结果注入到变量中。
+
