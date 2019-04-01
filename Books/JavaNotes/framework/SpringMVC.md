@@ -378,7 +378,7 @@ public class HandlerInterceptor1 implements HandlerInterceptor {
 
  
 
-**2.执行顺序**
+### 执行顺序
 
 1. preHandle按拦截器定义顺序调用
 2. postHandler按拦截器定义逆序调用
@@ -391,54 +391,38 @@ public class HandlerInterceptor1 implements HandlerInterceptor {
 
  
 
-**3.配置拦截器**
+### 配置拦截器
 
 方式一(不推荐)
 
+```xml
 <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
-
-<property name="interceptors">
-
-<list>
-
-<ref bean="handlerInterceptor1"/>
-
-<ref bean="handlerInterceptor2"/>
-
-</list>
-
-</property>
-
+    <property name="interceptors">
+        <list>
+            <ref bean="handlerInterceptor1"/>
+            <ref bean="handlerInterceptor2"/>
+        </list>
+    </property>
 </bean>
-
 <bean id="handlerInterceptor1" class="springmvc.intercapter.HandlerInterceptor1"/>
-
 <bean id="handlerInterceptor2" class="springmvc.intercapter.HandlerInterceptor2"/>
-
- 
+```
 
 方式二
 
+```xml
 <!--拦截器 -->
-
 <mvc:interceptors>
-
-<!--多个拦截器,顺序执行 -->
-
-<mvc:interceptor>
-
-<mvc:mapping path="/**"/>
-
-<bean class="cn.itcast.springmvc.filter.HandlerInterceptor1"></bean>
-
-</mvc:interceptor>
-
-<mvc:interceptor>
-
-<mvc:mapping path="/**"/>
-
-<bean class="cn.itcast.springmvc.filter.HandlerInterceptor2"></bean>
-
-</mvc:interceptor>
-
+    <!--多个拦截器,顺序执行 -->
+    <mvc:interceptor>
+        <!--匹配mapping的才会被拦截器拦截-->
+        <mvc:mapping path="/**"/>
+        	<bean class="cn.itcast.springmvc.filter.HandlerInterceptor1"></bean>
+    </mvc:interceptor>
+    <mvc:interceptor>
+    	<mvc:mapping path="/**"/>
+        <bean class="cn.itcast.springmvc.filter.HandlerInterceptor2"></bean>
+    </mvc:interceptor>
 </mvc:interceptors>
+```
+
