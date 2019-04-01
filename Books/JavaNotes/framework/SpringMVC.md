@@ -128,6 +128,8 @@
 
 **@RestController** ：Spring4之后新加入的注解，原来返回json需要@ResponseBody和@Controller配合。即@RestController是@ResponseBody和@Controller的组合注解。
 
+@RequestBody：将页面的json字符串转成pojo对象。
+
 **@ResponseBody** ：注解的作用是将controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到response对象的body区，通常用来返回JSON数据或者是XML数据，需要注意的呢，在使用此注解之后不会再走视图处理器，而是直接将数据写入到输入流中，他的效果等同于通过response对象输出指定格式的数据。
 
 ```java
@@ -211,6 +213,7 @@ public void login(User user, HttpServletResponse response){
 - pojo绑定(和简单类型绑定同时生效,即同名两个都获得值)
   - 形参pojo的属性名和请求参数名相同即可传值
   - 请求参数名为item.name则匹配，某个pojo形参的item属性的name属性
+  - pojo绑定的同时会注入pojo到request域，基础类型则不会。
 - 数组绑定：页面多个参数name相同，形参同名数组类型即可
 - list绑定：页面参数名写成：items[0].name的形式
 - map绑定：页面参数名写成：items['name']的形式
@@ -252,3 +255,190 @@ public class CustomDateConverter implements Converter<String, Date> {
 ```
 
 原理分析：页面的参数名用来匹配形参的参数名，然后会根据形参的具体类型去自动匹配对应的转换器（如果有的话），把转换后的结果注入到变量中。
+
+## 异常处理
+
+### 局部异常处理
+
+@ExceptionHandler：定义在Controller内部，作用于异常处理方法上.
+
+例:
+
+```java
+@ExceptionHandler(value={IOException.class,SQLException.class})  
+public String exp(Exception ex,HttpServletRequest request) {  }
+```
+
+ 
+
+### 全局异常处理
+
+1. 实现HandlerExceptionResolver接口，并配bean或者注解@Component就可以生效。
+
+2. 配置SimpleMappingExceptionResolver
+
+```xml
+<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">  
+    <!-- 定义默认的异常处理页面，默认异常会跳转到error.jsp -->  
+    <property name="defaultErrorView" value="error"></property>  
+    <!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception -->  
+    <property name="exceptionAttribute" value="ex"></property>  
+    <!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 -->  
+    <property name="exceptionMappings">  
+        <props>  
+            <prop key="IOException">error/ioexp</prop>  
+            <prop key="java.sql.SQLException">error/sqlexp</prop>  
+        </props>  
+    </property>  
+</bean>
+```
+
+## 上传文件
+
+需要jar包：commons-fileupload/io
+
+前台form属性enctype="multipart/form-data"
+
+### 配置CommonsMultipartResolver
+
+```xml
+<!-- 文件上传配置,上传拦截，如最大上传值及最小上传值 -->
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >   
+	<property name="maxUploadSize" value="104857600"></property>   
+	<property name="maxInMemorySize" value="4096"></property>   
+	 <property name="defaultEncoding" value="utf-8"></property> 
+</bean>  
+```
+
+### 编写Controller方法
+
+```java
+public String toRegister(HttpServletRequest request, @RequestParam("pic") MultipartFile pic) {
+	String filePath = request.getSession().getServletContext().getRealPath("upload/img");
+	String picName = UUID.randomUUID()+ pic.getOriginalFilename().substring(pic.getOriginalFilename().lastIndexOf('.'));
+	File file = new File(filePath + File.separator + picName);
+	try {
+		pic.transferTo(file);
+	} catch (IllegalStateException | IOException e) {
+		e.printStackTrace();
+	}
+	return "register";
+}
+```
+
+### MultipartFile接口
+
+方法:
+
+- String getOriginalFileName() 返回文件名.后缀
+- void transferTo(File file) 把文件存储到file里
+
+### 虚拟目录
+
+在tomcat上配置图片虚拟目录，在tomcat下conf/server.xml中添加：
+
+```xml
+<Context docBase="F:\develop\upload\temp" path="/pic" reloadable="false"/>
+```
+
+访问`http://localhost:8080/pic`即可访问`F:\develop\upload\temp`下的图片
+
+## 拦截器
+
+### 实现HandlerInterceptor接口
+
+```java
+public class HandlerInterceptor1 implements HandlerInterceptor {
+	//进入 Handler方法之前执行
+	//用于身份认证、身份授权
+	//比如身份认证，如果认证通过表示当前用户没有登陆，需要此方法拦截不再向下执行
+	@Override
+	public boolean preHandle(HttpServletRequest request,
+			HttpServletResponse response, Object handler) throws Exception {
+		//return false表示拦截，不向下执行
+		//return true表示放行
+		return false;
+	}
+	//进入Handler方法之后，返回modelAndView之前执行
+	//应用场景从modelAndView出发：将公用的模型数据(比如菜单导航)在这里传到视图，也可以在这里统一指定视图
+	@Override
+	public void postHandle(HttpServletRequest request,
+			HttpServletResponse response, Object handler,
+			ModelAndView modelAndView) throws Exception {
+	}
+	//执行Handler完成执行此方法
+	//应用场景：统一异常处理，统一日志处理
+	@Override
+	public void afterCompletion(HttpServletRequest request,
+			HttpServletResponse response, Object handler, Exception ex)
+			throws Exception {
+	}
+}
+```
+
+ 
+
+**2.执行顺序**
+
+1. preHandle按拦截器定义顺序调用
+2. postHandler按拦截器定义逆序调用
+3. afterCompletion按拦截器定义逆序调用
+4. preHandle在拦截器链内它之前的所有拦截器方法返回true时调用。
+5. postHandler在拦截器链内它之前的所有拦截器方法返回true时调用。
+6. afterCompletion只要其自身的preHandle返回true就调用，反之返回false或不执行时都不调用。
+
+ 
+
+ 
+
+**3.配置拦截器**
+
+方式一(不推荐)
+
+<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+
+<property name="interceptors">
+
+<list>
+
+<ref bean="handlerInterceptor1"/>
+
+<ref bean="handlerInterceptor2"/>
+
+</list>
+
+</property>
+
+</bean>
+
+<bean id="handlerInterceptor1" class="springmvc.intercapter.HandlerInterceptor1"/>
+
+<bean id="handlerInterceptor2" class="springmvc.intercapter.HandlerInterceptor2"/>
+
+ 
+
+方式二
+
+<!--拦截器 -->
+
+<mvc:interceptors>
+
+<!--多个拦截器,顺序执行 -->
+
+<mvc:interceptor>
+
+<mvc:mapping path="/**"/>
+
+<bean class="cn.itcast.springmvc.filter.HandlerInterceptor1"></bean>
+
+</mvc:interceptor>
+
+<mvc:interceptor>
+
+<mvc:mapping path="/**"/>
+
+<bean class="cn.itcast.springmvc.filter.HandlerInterceptor2"></bean>
+
+</mvc:interceptor>
+
+</mvc:interceptors>
