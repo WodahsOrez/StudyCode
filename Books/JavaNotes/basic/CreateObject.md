@@ -26,15 +26,66 @@
 
 一个类的生命周期包括加载（Loading）、验证（Verification）、准备(Preparation)、解析(Resolution)、初始化(Initialization)、使用(Using) 和 卸载(Unloading)七个阶段。
 
-准备阶段是正式为类变量(static 成员变量)分配内存并设置类变量初始值（零值）的阶段，这些变量所使用的内存都将在方法区中进行分配。如果类变量是final，准备阶段就会把类变量赋值为指定的值。
+### 准备阶段
 
-而在初始化阶段，则根据程序猿通过程序制定的主观计划去初始化类变量和其他资源，或者更直接地说：初始化阶段是执行类构造器<clinit>()方法的过程。<clinit>()方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块static{}中的语句合并产生的，编译器收集的顺序是由语句在源文件中出现的顺序所决定的，静态语句块只能访问到定义在静态语句块之前的变量，定义在它之后的变量，在前面的静态语句块可以赋值，但是不能访问。
+- 正式为类变量(static 成员变量)分配内存并设置类变量初始值（零值）的阶段，这些变量所使用的内存都将在方法区中进行分配。
+- 如果类变量是final，准备阶段就会把类变量赋值为指定的值。
 
- 在同一个类加载器下，一个类型只会被初始化一次。
+### 初始化阶段
 
-父类的类构造器<clinit>() -> 子类的类构造器<clinit>() -> 父类的成员变量和实例代码块 -> 父类的构造函数 -> 子类的成员变量和实例代码块 -> 子类的构造函数。
+- 初始化阶段是执行类构造器`<clinit>()`方法的过程。`<clinit>()`方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块static{}中的语句合并产生的。
+- 编译器收集的顺序是由语句在源文件中出现的顺序所决定的。
+- 静态语句块只能访问到定义在静态语句块之前的变量，定义在它之后的变量，在前面的静态语句块可以赋值，但是不能访问。除非使用`类名.变量`的方式调用。
+- 虚拟机会保证在子类类构造器`<clinit>()`执行之前，父类的类构造`<clinit>()`执行完毕。即父类中定义的静态语句块/静态变量的初始化要优先于子类的静态语句块/静态变量的初始化执行。
+- 类构造器`<clinit>()`对于类或者接口来说并不是必需的，如果一个类中没有静态语句块，也没有对类变量的赋值操作，那么编译器可以不为这个类生产类构造器`<clinit>()`。
 
-实际上是把实例初始化嵌入到了静态初始化流程中
+-  在同一个类加载器下，一个类型只会被初始化一次。多线程时只会有一个线程去执行这个类的类构造器`<clinit>()`，其他线程都需要阻塞等待，直到活动线程执行`<clinit>()`方法完毕。且其他线程在唤醒之后不会再次进入/执行`<clinit>()`方法
+- 实例初始化不一定要在类初始化结束之后才开始初始化。其实两者是互相独立的，如果在类初始化的过程中触发了实例初始化，那么实例初始化就执行且此时类初始化还未结束。只是大多数情况下对于类实例化的调用都排在类初始化之后。
+
+```java
+public class StaticTest {
+    public static void main(String[] args) {
+        staticFunction();
+    }
+
+    static StaticTest st = new StaticTest();
+
+    static {   //静态代码块
+        System.out.println("1");
+    }
+
+    {       // 实例代码块
+        System.out.println("2");
+    }
+
+    StaticTest() {    // 实例构造器
+        System.out.println("3");
+        System.out.println("a=" + a + ",b=" + b);
+    }
+
+    public static void staticFunction() {   // 静态方法
+        System.out.println("4");
+    }
+
+    int a = 110;    // 实例变量
+    static int b = 112;     // 静态变量
+}
+/* Output: 
+    2
+    3
+    a=110,b=0
+    1
+    4
+*/
+```
+
+上面一个就是类初始化未结束实例初始化就开始的特例。其原因在于`<clinit>()`类构造器在收集静态变量的赋值动作时遇到如下语句
+
+```java
+static StaticTest st = new StaticTest();
+```
+
+由于静态变量StaticTest的赋值动作里包含了实例初始化的操作，所以此时实例初始化就开始了，且此时是类初始化的开端，所以静态代码块和静态变量b的赋值动作还未执行。
 
 ## 实例对象的创建时机
 
@@ -137,7 +188,78 @@ Java要求在实例化类之前，必须先实例化其超类，以保证所创�
 - 父类构造函数和本类其他构造函数不能同时出现
 - 本类构造函数调用不能出现递归调用，即调用链为死循环
 
+实例构造器`<init>()`是基于构造函数生成，并把实例变量赋值动作和实例代码块插入到父类构造函数之后本类构造函数之前。
 
+## 总结
+
+类初始化`<clinit>()`
+
+1. 执行父类初始化
+2. 准备阶段：分配静态变量内存空间，赋默认值（零值）。final赋指定值。
+3. 静态变量赋值动作/静态代码块，按代码书写顺序执行。（此过程可能会调用类实例化）
+
+类实例化`<init>()`
+
+1. 分配实例变量内存空间，赋值默认值（零值）。
+2. 执行父类实例化
+3. 本类实例变量赋值动作/实例代码块，按代码书写顺序执行。
+4. 本类实例构造函数部分代码
+
+
+
+猜测：由于类实例化有可能触发类初始化，所以虚拟机会保证类初始化在触发它的类实例化之前执行，而由于类初始化只能执行一次，所以在类初始化结束前遇到的类实例化就可以不触发，并且先于类初始化执行结束。
+
+```java
+public class InstanceInitializer {
+    static Instance instance = new Instance();
+    
+    static int x = 3;
+    
+    static {
+        System.out.println("static:InstanceInitializer");
+    }
+
+    private int i = 1;
+    
+    {
+        System.out.println("Is:InstanceInitializer:x = "+x);
+        System.out.println("Is:InstanceInitializer:i ="+this.i+ " and " +"j = "+this.j); 
+        this.j = 2;
+        System.out.println("Is:InstanceInitializer:j = "+this.j);
+    }
+    private int j = getj();
+    
+    private int getj(){
+        return 3;
+    }
+    public static void main(String[] args) {
+        InstanceInitializer ii =new InstanceInitializer();
+        System.out.println("main:InstanceInitializer:j = "+ii.j);
+    }
+    
+}
+
+class Instance {
+    static int i = 3;
+    
+    static InstanceInitializer ii = new InstanceInitializer();
+    
+    static {
+        System.out.println("static:Instance: i = "+i);
+    }
+}
+/*output:
+    Is:InstanceInitializer:x = 0
+    Is:InstanceInitializer:i =1 and j = 0
+    Is:InstanceInitializer:j = 2
+    static:Instance: i = 3
+    static:InstanceInitializer
+    Is:InstanceInitializer:x = 3
+    Is:InstanceInitializer:i =1 and j = 0
+    Is:InstanceInitializer:j = 2
+    main:InstanceInitializer:j = 3
+*/
+```
 
 
 
