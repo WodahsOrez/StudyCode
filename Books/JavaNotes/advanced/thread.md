@@ -19,6 +19,59 @@
 **同步**：是指通过人为的控制和调度，保证共享资源的多线程访问成为线程安全，来保证结果的准确。
 
 
+#### synchronized关键词
+
+```java
+// 同步代码块，括号内填实例对象，或者.class对象作为锁
+synchronized(对象)
+{
+	// 需要被同步的代码；
+}
+
+// 同步方法，锁是this对象
+public synchronized void fn(){
+    // 需要被同步的代码；
+}
+
+// 同步静态方法，锁是字节码对象对象*.class/this.getClass
+public synchronized void fn(){
+    // 需要被同步的代码；
+}
+```
+
+同步方法被锁后，不影响多线程对非同步方法的访问。
+
+对于synchronize线程抛出异常锁就会被释放。
+
+synchronize(o)，o指向的对象属性改变不影响锁的使用，但如果o的引用指向了其他对象，那么锁定的对象也发生改变。
+
+不要用字符串常量作为锁定对象，容易锁到同一个常量而导致死锁。
+
+
+
+重入锁：同一把锁在未被释放时，可以被重复多次获得。
+
+synchronize支持重入锁，应用情景有：
+
+- 同一线程在锁A的方法内部访问另一个锁是A的同步方法。
+- 子类this同步方法内访问父类this同步方法。
+
+死锁：两个线程分别持有对方想要的锁。A有锁1去要锁2，B有锁2去要锁1。
+
+
+
+
+
+**volatile关键词**：
+
+- 由于线程都有各自独立的缓存，非volatile变量的值被线程缓存后，线程A更新了这个值，线程B读取这个变量的值时可能读到的并不是是线程A更新后的值。
+- volatile变量则会变得多线程可见，即该变量会强制将修改的值立即写入主存，主存中值的更新会使缓存中的值失效。以使得该变量在多线程中值的同步。
+- volatile要比synchronize效率高的多，但只保证可见性，不保证原子性。（即读的时候是最新的值，但写的时候就不会检查是否还是之前读的那个值了）
+
+
+
+原子性包：Atomic开头的类基本都保证了原子性和线程安全，且性能比synchronize高。如：java.util.concurrent.atomic包。
+
 
 
 
@@ -56,26 +109,6 @@ Thread.State getState()  返回一个State枚举常量
 static Thread currentThread()     返回一个当前线程对象。
 void	interrupt()  把当前线程从阻塞状态中恢复到可执行状态
 static void yield()  当前线程释放执行权限,进行新一轮的权限争夺
-```
-
-#### synchronized关键词
-
-```java
-// 同步代码块，括号内填实例对象，或者.class对象作为锁
-synchronized(对象)
-{
-	// 需要被同步的代码；
-}
-
-// 同步函数，锁是this对象
-public synchronized void fn(){
-    // 需要被同步的代码；
-}
-
-// 同步静态函数，锁是字节码对象对象*.class/this.getClass
-public synchronized void fn(){
-    // 需要被同步的代码；
-}
 ```
 
 #### Object类里的线程通信方法:
