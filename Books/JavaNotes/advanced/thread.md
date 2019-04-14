@@ -33,7 +33,9 @@ static void sleep(long millis) // 在指定的毫秒数内让当前正在执行�
 boolean isAlive()// 当前线程是否处于活跃状态(线程执行结束后的状态返回false)
 Thread.State getState()// 返回一个State枚举常量
 static Thread currentThread()// 返回一个当前线程对象。
-void	interrupt()// 把当前线程从阻塞状态中恢复到可执行状态
+void interrupt()// 把当前线程中断标识重置为true，但线程的中断需要自己在代码里监测该标识并处理
+static boolean	interrupted()// 返回调用该方法的当前线程的中断状态，并重置为false
+boolean	isInterrupted()// 返回实例指向的线程对象的中断状态，不会重置
 static void yield()// 当前线程释放cpu执行权限,进行新一轮的权限争夺
 ```
 
@@ -78,6 +80,8 @@ void notifyAll()  //唤醒当前对象线程池中所有的线程
 **死锁**：两个线程分别持有对方想要的锁。A有锁1去要锁2，B有锁2去要锁1。
 
 **闭锁**：一种同步方法，可以延迟线程的进度直到线程到达某个终点状态。且闭锁具有一次性，一旦打开，则无法被关闭。
+
+**公平锁**：谁等待的时间长，谁获得锁。效率比非公平锁低。synchronize是非公平锁。
 
 ## synchronized同步
 
@@ -214,31 +218,48 @@ public class Latch {
 
 
 
-## Locks同步
+## Lock手动锁同步
 
 **相关包**：java.util.concurrent.locks包
 
-#### Lock接口
+### Lock接口
 
-方法:
+方法
 
 ```java
-void lock()  当前线程获取锁,
-void unlock()  当前线程释放锁.
-Condition  newCondition()  返回监视器对象
+void lock()  当前线程获取锁
+void lockInterruptibly() 同上，区别在于当锁不可用而阻塞时，如果当前线程的中断标识为true，就会抛出InterruptedException来中断获取锁的操作
+void unlock()  当前线程释放锁
+Condition  newCondition()  返回绑定到此Lock实例的新监视器实例
+boolean tryLock() 仅在调用锁为空闲状态才获取该锁，同时返回true，如果锁不可用，返回false
+boolean	tryLock(long time, TimeUnit unit)同上， 区别在于会等待指定的时间，时间内获得锁可用就获得锁，返回true，等到超时也没获取锁时，结束等待，返回false
+
 ```
 
-ReentrantLock类
+### ReentrantLock类
 
-`ReentrantLock()`
+实现了Lock接口，构造方法如下：
 
-Condition接口
+```java
+ReentrantLock() 无参构造
+ReentrantLock(Boolean fair) fair为true时，创建公平锁，默认为false是非公平锁
+```
+
+
+
+
+
+### Condition接口
 
 方法:
 
 ```java
-void	await()
-void	signal()
-void	signalAll()
+void await() 当前线程阻塞等待，直到被signal或signalAll唤醒，或是中断标识变为true时抛出InterruptedException来解除阻塞
+boolean	await(long time, TimeUnit unit)同上，设定超时，时间内获得锁为true，反之，为false
+long awaitNanos(long nanosTimeout)同上，参数填long型的纳秒数，返回值是剩余时间，超时返回一个小于等于0的值
+boolean	awaitUntil(Date deadline)同2，但设定的是截止时间
+void awaitUninterruptibly() 同await()，区别在于中断不会影响该方法大的阻塞
+void signal() 唤醒当前监视器内的等待的某一个线程
+void signalAll() 唤醒当前监视器内的等待的所有线程
 ```
 
