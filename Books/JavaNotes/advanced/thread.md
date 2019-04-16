@@ -28,8 +28,8 @@ void start()// 开启该线程，并执行run内的代码
 String getName() // 获取线程的名字，Thread-编号(从0开始) ，主线程名字为main
 int getPriority()// 获取优先级
 void setPriority(int newPriority) // 设置优先级1~10，默认为5
-void join() // 直到用该方法的线程死亡前一直等待。(在A的线程中间调用B.join()，则直到B结束A才会运行)
-static void sleep(long millis) // 在指定的毫秒数内让当前正在执行的线程休眠（代码所在的线程休眠，实例调用也一样）,不会释放锁
+void join() throws InterruptedException // 直到用该方法的线程死亡前一直等待。(在A的线程中间调用B.join()，则直到B结束A才会运行)
+static void sleep(long millis) throws InterruptedException// 在指定的毫秒数内让当前正在执行的线程休眠（代码所在的线程休眠，实例调用也一样）,不会释放锁
 boolean isAlive()// 当前线程是否处于活跃状态(线程执行结束后的状态返回false)
 Thread.State getState()// 返回一个State枚举常量
 static Thread currentThread()// 返回一个当前线程对象。
@@ -47,9 +47,9 @@ static void yield()// 当前线程释放cpu执行权限,进行新一轮的权限
 ### Object类里的线程通信方法:
 
 ```java
-void wait()  // 让当前线程等待,并释放锁
-void wait(long timeout) // 等待指定毫秒
-void wait(long timeout,int nanos)// 分别是毫秒和纳秒,(当纳秒>500,000时,timeout++)
+void wait() throws InterruptedException  // 让当前线程等待,并释放锁
+void wait(long timeout) throws InterruptedException// 等待指定毫秒
+void wait(long timeout,int nanos) throws InterruptedException// 分别是毫秒和纳秒,(当纳秒>500,000时,timeout++)
 void notify()  // 唤醒某一个当前对象线程池中的线程(任意)
 void notifyAll()  //唤醒当前对象线程池中所有的线程
 // notify当前线程不会释放锁，会继续执行
@@ -156,7 +156,7 @@ public synchronized void fn(){
 - volatile变量在每次被线程访问时，都强迫从主内存中重读该变量的值，而当变量发生变化时，又强迫线程将最新的值刷新到主内存。这样任何时刻，不同的线程总能看到该变量的最新的值。
 - volatile要比synchronize效率高的多，但只保证可见性，不保证原子性。（即读的时候是最新的值，但写的时候就不会检查是否还是之前读的那个值了）
 
-原子性包：Atomic开头的类基本都保证了原子性和线程安全，且性能比synchronize高，只保证它提供的操作的原子性，和其他代码合用时总体的原子性不保证。如：java.util.concurrent.atomic包。
+原子性包：Atomic开头的类基本都保证了原子性和线程安全，且性能比synchronize高，只保证它提供的操作的原子性，和其他代码合用时总体的原子性不保证。如：java.util.concurrent.atomic包。原子类底层都使用了volatile保证了可见性。
 
 #### volatile的适用场景
 
@@ -273,12 +273,11 @@ public class Latch {
 
 ```java
 void lock()  当前线程获取锁
-void lockInterruptibly() 同上，区别在于当锁不可用而阻塞时，如果当前线程的中断标识为true，就会抛出InterruptedException来中断获取锁的操作
+void lockInterruptibly() throws InterruptedException 同上，区别在于当锁不可用而阻塞时，如果当前线程的中断标识为true，就会抛出InterruptedException来中断获取锁的操作
 void unlock()  当前线程释放锁
 Condition  newCondition()  返回绑定到此Lock实例的新监视器实例
 boolean tryLock() 仅在调用锁为空闲状态才获取该锁，同时返回true，如果锁不可用，返回false
-boolean	tryLock(long time, TimeUnit unit)同上， 区别在于会等待指定的时间，时间内获得锁可用就获得锁，返回true，等到超时也没获取锁时，结束等待，返回false
-
+boolean	tryLock(long time, TimeUnit unit) throws InterruptedException同上， 区别在于会等待指定的时间，时间内获得锁可用就获得锁，返回true，等到超时也没获取锁时，结束等待，返回false
 ```
 
 ### ReentrantLock类
@@ -290,19 +289,15 @@ ReentrantLock() 无参构造
 ReentrantLock(Boolean fair) fair为true时，创建公平锁，默认为false是非公平锁
 ```
 
-
-
-
-
 ### Condition接口
 
 方法:
 
 ```java
-void await() 当前线程阻塞等待，直到被signal或signalAll唤醒，或是中断标识变为true时抛出InterruptedException来解除阻塞
-boolean	await(long time, TimeUnit unit)同上，设定超时，时间内获得锁为true，反之，为false
-long awaitNanos(long nanosTimeout)同上，参数填long型的纳秒数，返回值是剩余时间，超时返回一个小于等于0的值
-boolean	awaitUntil(Date deadline)同2，但设定的是截止时间
+void await() throws InterruptedException当前线程阻塞等待，直到被signal或signalAll唤醒，或是中断标识变为true时抛出InterruptedException来解除阻塞
+boolean	await(long time, TimeUnit unit) throws InterruptedException同上，设定超时，时间内获得锁为true，反之，为false
+long awaitNanos(long nanosTimeout) throws InterruptedException同上，参数填long型的纳秒数，返回值是剩余时间，超时返回一个小于等于0的值
+boolean	awaitUntil(Date deadline) throws InterruptedException同2，但设定的是截止时间
 void awaitUninterruptibly() 同await()，区别在于中断不会影响该方法的阻塞
 void signal() 唤醒当前监视器内的等待的某一个线程
 void signalAll() 唤醒当前监视器内的等待的所有线程
