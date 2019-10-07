@@ -1,3 +1,6 @@
-# 简介
+# 技术栈汇总
 
-记录一部分整理的笔记。
+数据库：MySQL、Oracle、MongoDB
+
+框架：Spring、SpringMVC、Mybatis、Hibernate、Maven
+

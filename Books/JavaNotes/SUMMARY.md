@@ -42,15 +42,18 @@
     * [约束，索引，注释](database/constraint.md)
     * [存储过程](database/procedure.md)
     * [视图](database/view.md)
-
+    * [Oracle](database/Oracle.md)
+    * [MongoDB](database/MongoDB.md)
+    
 * 框架
     * [Maven](framework/maven.md)
     * [Mybatis](framework/Mybatis.md)
+    * [Hibernate](framework/Hibernate.md)
     * [Spring](framework/Spring.md)
     * [Spring注解](framework/springanno.md)
     * [SpringMVC](framework/SpringMVC.md)
     * [Spring-xml配置](framework/Springxml.md)
-
+  
 * 设计模式
     * [概念](DesignPatterns/designPatterns.md)
     * [门面模式(facade)](DesignPatterns/facade.md)
