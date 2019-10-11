@@ -42,7 +42,8 @@
     * [约束，索引，注释](database/constraint.md)
     * [存储过程](database/procedure.md)
     * [视图](database/view.md)
-
+* [sql优化](database/SQLoptimization.md)
+    
 * 框架
     * [Maven](framework/maven.md)
     * [Mybatis](framework/Mybatis.md)
