@@ -62,7 +62,7 @@ Oracle是没有int类型，只有number类型
 select count(*) from gcfr_t_vch a where rownum>1;
 ```
 
-因为是伪列，每次从1开始计数，如果1不能rownum的条件那么下一次还会从1开始，导致所有数据都不符合。
+因为是伪列，每次从1开始计数，如果1不能满足rownum的条件那么下一次还会从1开始，导致所有数据都不符合。
 
 通过把rownum变成子表变量来查询可以规避该风险。pageNo要显示第几页，PageSize每页显示的条数。
 
