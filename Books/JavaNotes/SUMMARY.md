@@ -42,13 +42,10 @@
     * [约束，索引，注释](database/constraint.md)
     * [存储过程](database/procedure.md)
     * [视图](database/view.md)
-<<<<<<< HEAD
-* [sql优化](database/SQLoptimization.md)
-=======
+    * [sql优化](database/SQLoptimization.md)
     * [Oracle](database/Oracle.md)
     * [MongoDB](database/MongoDB.md)
->>>>>>> ab6454b75540b6f5c078d92ddccdff338e24595d
-    
+
 * 框架
     * [Maven](framework/maven.md)
     * [Mybatis](framework/Mybatis.md)
