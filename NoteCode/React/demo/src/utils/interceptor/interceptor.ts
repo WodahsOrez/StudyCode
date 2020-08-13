@@ -1,0 +1,148 @@
+import axios from 'axios';
+import Router from 'next/router';
+// import i18n from '@/locale';
+
+
+/**
+ * 拦截器
+ *
+ * @export
+ * @class Interceptors
+ */
+export class Interceptors {
+
+    /**
+     *  单列对象
+     *
+     * @private
+     * @static
+     * @type {LoadAppData}
+     * @memberof Interceptors
+     */
+    private static readonly instance: Interceptors = new Interceptors();
+
+    /**
+     * Creates an instance of Interceptors.
+     * 私有构造，拒绝通过 new 创建对象
+     * 
+     * @memberof Interceptors
+     */
+    private constructor() {
+        if (Interceptors.instance) {
+            return Interceptors.instance;
+        } else {
+            this.intercept();
+        }
+    }
+
+    /**
+     * 获取 LoadAppData 单例对象
+     *
+     * @static
+     * @param {Router} route
+     * @param {Store<any>} store
+     * @returns {Interceptors}
+     * @memberof Interceptors
+     */
+    public static getInstance(route: any): Interceptors {
+        return this.instance;
+    }
+
+    /**
+     * 拦截器实现接口
+     *
+     * @private
+     * @memberof Interceptors
+     */
+    private intercept(): void {
+        axios.interceptors.request.use((config: any) => {
+            let appdata: any ;
+            if (appdata && appdata.context) {
+                config.headers['srforgsectorid'] = appdata.context.srforgsectorid;
+            }
+            if(!window.localStorage.getItem('token')){
+                let arr;
+                let reg = new RegExp("(^| )ibzuaa-token=([^;]*)(;|$)");
+                if (arr = document.cookie.match(reg)){
+                    window.localStorage.setItem('token',unescape(arr[2]));
+                }
+            }
+            if (window.localStorage.getItem('token')) {
+                const token = window.localStorage.getItem('token');
+                config.headers['Authorization'] = `Bearer ${token}`;
+            }
+            // config.headers['Accept-Language'] =  i18n.locale;
+            // if (!config.url.startsWith('https://') && !config.url.startsWith('http://')) {
+            //     config.url = Environment.BaseUrl + config.url;
+            // }
+            return config;
+        }, (error: any) => {
+            return Promise.reject(error);
+        });
+
+        axios.interceptors.response.use((response: any) => {
+            return response;
+        }, (error: any) => {
+            error = error ? error : { response: {} };
+            let { response: res } = error;
+            let { data: _data } = res;
+            
+            if (res.status === 401) {
+                this.doNoLogin(_data.data);
+            }
+            if(res.status === 403){
+                if(res.data && res.data.status && Object.is(res.data.status,"FORBIDDEN")){
+                    let alertMessage:string ="非常抱歉，您无权操作此数据，如需操作请联系管理员！";
+                    Object.assign(res.data,{localizedMessage:alertMessage,message:alertMessage});
+                }
+            }
+            // if (res.status === 404) {
+            //     this.router.push({ path: '/404' });
+            // } else if (res.status === 500) {
+            //     this.router.push({ path: '/500' });
+            // }
+
+            return Promise.reject(res);
+        });
+    }
+
+    /**
+     * 处理未登录异常情况
+     *
+     * @private
+     * @param {*} [data={}]
+     * @memberof Interceptors
+     */
+    private doNoLogin(data: any = {}): void {
+        // 清除user、token和cookie
+        if(localStorage.getItem('user')){
+            localStorage.removeItem('user');
+        }
+        if(localStorage.getItem('token')){
+            localStorage.removeItem('token');
+        }
+        let leftTime = new Date();
+        leftTime.setTime(leftTime.getSeconds() - 1);
+        document.cookie = "ibzuaa-token=;expires=" + leftTime.toUTCString();
+        if (data.loginurl && !Object.is(data.loginurl, '') && data.originurl && !Object.is(data.originurl, '')) {
+            let _url = encodeURIComponent(encodeURIComponent(window.location.href));
+            let loginurl: string = data.loginurl;
+            const originurl: string = data.originurl;
+
+            if (originurl.indexOf('?') === -1) {
+                _url = `${encodeURIComponent('?RU=')}${_url}`;
+            } else {
+                _url = `${encodeURIComponent('&RU=')}${_url}`;
+            }
+            loginurl = `${loginurl}${_url}`;
+
+            window.location.href = loginurl;
+        } else {
+            if (Object.is(Router.pathname, '/login')) {
+                return;
+            }
+            Router.push({ pathname: '/login', query: { redirect: Router.pathname } });
+        }
+    }
+
+}
